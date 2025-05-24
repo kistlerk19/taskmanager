@@ -11,7 +11,6 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
       select: {
         userId: true,
         username: true,
-        email: true,
         profilePictureUrl: true,
         teamId: true,
       },
@@ -34,7 +33,6 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
       select: {
         userId: true,
         username: true,
-        email: true,
         profilePictureUrl: true,
         teamId: true,
       },
@@ -71,7 +69,6 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
       select: {
         userId: true,
         username: true,
-        email: true,
         profilePictureUrl: true,
         teamId: true,
       },
@@ -90,21 +87,18 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, password } = req.body;
 
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [
-          { email: email },
-          { username: username }
-        ]
+        username: username
       }
     });
 
     if (existingUser) {
       return res.status(400).json({ 
-        message: existingUser.email === email ? "Email already registered" : "Username already taken" 
+        message: "Username already taken" 
       });
     }
 
@@ -116,7 +110,6 @@ export const registerUser = async (req: Request, res: Response) => {
     const newUser = await prisma.user.create({
       data: {
         username,
-        email,
         password: hashedPassword,
         profilePictureUrl: "i1.jpg",
         teamId: 1,
@@ -124,7 +117,6 @@ export const registerUser = async (req: Request, res: Response) => {
       select: {
         userId: true,
         username: true,
-        email: true,
         profilePictureUrl: true,
         teamId: true,
       },
@@ -132,7 +124,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: newUser.userId, email: newUser.email },
+      { userId: newUser.userId, username: newUser.username },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
@@ -151,26 +143,26 @@ export const registerUser = async (req: Request, res: Response) => {
 
 export const loginUser = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    // Find user by email
+    // Find user by username
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { username },
     });
 
     if (!user || !user.password) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid username or password" });
     }
 
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid username or password" });
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user.userId, email: user.email },
+      { userId: user.userId, username: user.username },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
@@ -179,7 +171,6 @@ export const loginUser = async (req: Request, res: Response) => {
     const userResponse = {
       userId: user.userId,
       username: user.username,
-      email: user.email,
       profilePictureUrl: user.profilePictureUrl,
       teamId: user.teamId,
     };
