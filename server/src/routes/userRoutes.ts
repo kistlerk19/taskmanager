@@ -11,10 +11,10 @@ import {
 const router = Router();
 
 // Auth routes
-router.post("/auth/register", registerUser);
-router.post("/auth/login", loginUser);
-router.post("/auth/logout", logoutUser);
-router.get("/auth/me", getCurrentUser);
+router.post("/register", registerUser);
+router.post("/login", loginUser);
+router.post("/logout", logoutUser);
+router.get("/me", getCurrentUser);
 
 // User routes
 router.get("/", getUsers);
