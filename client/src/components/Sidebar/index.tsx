@@ -48,6 +48,12 @@ const Sidebar = () => {
   const currentUser = auth.user;
   if (!currentUser) return null;
 
+  // Safely access user properties that might not be in the type definition
+  const userProfile = currentUser.profile || currentUser;
+  const userPicture = (userProfile as any)?.picture;
+  const userName = (userProfile as any)?.name || currentUser.profile?.name;
+  const userEmail = (userProfile as any)?.email || currentUser.profile?.email;
+
   const sidebarClassNames = `fixed flex flex-col h-[100%] justify-between shadow-xl
     transition-all duration-300 h-full z-40 dark:bg-black overflow-y-auto bg-white
     ${isSidebarCollapsed ? "w-0 hidden" : "w-64"}
@@ -164,10 +170,10 @@ const Sidebar = () => {
       <div className="z-10 mt-32 flex w-full flex-col items-center gap-4 bg-white px-8 py-4 dark:bg-black md:hidden">
         <div className="flex w-full items-center">
           <div className="align-center flex h-9 w-9 justify-center">
-            {currentUser.picture ? (
+            {userPicture ? (
               <Image
-                src={currentUser.picture}
-                alt={currentUser.name || currentUser.email || "User Profile Picture"}
+                src={userPicture}
+                alt={userName || userEmail || "User Profile Picture"}
                 width={100}
                 height={50}
                 className="h-full rounded-full object-cover"
@@ -177,7 +183,7 @@ const Sidebar = () => {
             )}
           </div>
           <span className="mx-3 text-gray-800 dark:text-white">
-            {currentUser.name || currentUser.email}
+            {userName || userEmail}
           </span>
           <button
             className="self-start rounded bg-blue-400 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 md:block"

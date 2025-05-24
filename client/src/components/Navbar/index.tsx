@@ -26,6 +26,12 @@ const Navbar = () => {
 
   if (!currentUser) return null;
 
+  // Safely access user properties that might not be in the type definition
+  const userProfile = currentUser.profile || currentUser;
+  const userPicture = (userProfile as any)?.picture;
+  const userName = (userProfile as any)?.name || currentUser.profile?.name;
+  const userEmail = (userProfile as any)?.email || currentUser.profile?.email;
+
   return (
     <div className="flex items-center justify-between bg-white px-4 py-3 dark:bg-black">
       {/* Search Bar */}
@@ -76,10 +82,10 @@ const Navbar = () => {
         <div className="ml-2 mr-5 hidden min-h-[2em] w-[0.1rem] bg-gray-200 md:inline-block"></div>
         <div className="hidden items-center justify-between md:flex">
           <div className="align-center flex h-9 w-9 justify-center">
-            {currentUser.picture ? (
+            {userPicture ? (
               <Image
-                src={currentUser.picture}
-                alt={currentUser.name || currentUser.email || "User Profile Picture"}
+                src={userPicture}
+                alt={userName || userEmail || "User Profile Picture"}
                 width={100}
                 height={50}
                 className="h-full rounded-full object-cover"
@@ -89,7 +95,7 @@ const Navbar = () => {
             )}
           </div>
           <span className="mx-3 text-gray-800 dark:text-white">
-            {currentUser.name || currentUser.email}
+            {userName || userEmail}
           </span>
           <button
             className="hidden rounded bg-blue-400 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 md:block"
