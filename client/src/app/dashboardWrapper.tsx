@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import AuthProvider from "./authProvider";
 import StoreProvider, { useAppSelector } from "./redux";
 
+// Move DashboardLayout inside the providers so it can access Redux state
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed,
@@ -34,6 +35,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// Wrapper component that provides all the context providers
 const DashboardWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <StoreProvider>

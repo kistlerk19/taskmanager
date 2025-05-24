@@ -3,28 +3,28 @@ import { Menu, Moon, Search, Settings, Sun, User } from "lucide-react";
 import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsDarkMode, setIsSidebarCollapsed } from "@/state";
-import { useGetAuthUserQuery } from "@/state/api";
-import { signOut } from "aws-amplify/auth";
+import { useAuth } from "react-oidc-context";
 import Image from "next/image";
 
 const Navbar = () => {
   const dispatch = useAppDispatch();
+  const auth = useAuth();
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed,
   );
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
 
-  const { data: currentUser } = useGetAuthUserQuery({});
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error("Error signing out: ", error);
-    }
+  const handleSignOut = () => {
+    const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!;
+    const logoutUri = process.env.NEXT_PUBLIC_REDIRECT_URI!;
+    const cognitoDomain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN!;
+    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
   };
 
+  // Get user info from OIDC auth
+  const currentUser = auth.user;
+
   if (!currentUser) return null;
-  const currentUserDetails = currentUser?.userDetails;
 
   return (
     <div className="flex items-center justify-between bg-white px-4 py-3 dark:bg-black">
@@ -76,10 +76,10 @@ const Navbar = () => {
         <div className="ml-2 mr-5 hidden min-h-[2em] w-[0.1rem] bg-gray-200 md:inline-block"></div>
         <div className="hidden items-center justify-between md:flex">
           <div className="align-center flex h-9 w-9 justify-center">
-            {!!currentUserDetails?.profilePictureUrl ? (
+            {currentUser.picture ? (
               <Image
-                src={`https://tm-s3-images.s3.eu-west-1.amazonaws.com/${currentUserDetails?.profilePictureUrl}`}
-                alt={currentUserDetails?.username || "User Profile Picture"}
+                src={currentUser.picture}
+                alt={currentUser.name || currentUser.email || "User Profile Picture"}
                 width={100}
                 height={50}
                 className="h-full rounded-full object-cover"
@@ -89,7 +89,7 @@ const Navbar = () => {
             )}
           </div>
           <span className="mx-3 text-gray-800 dark:text-white">
-            {currentUserDetails?.username}
+            {currentUser.name || currentUser.email}
           </span>
           <button
             className="hidden rounded bg-blue-400 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 md:block"
