@@ -1,14 +1,37 @@
+// authProvider.tsx
 "use client";
-import React, { useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { useAppDispatch, useAppSelector } from "./redux";
 import { initializeAuth } from "../state/authSlice";
 import SignIn from "@/components/auth/SignIn";
 import SignUp from "@/components/auth/SignUp";
 
-const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+interface AuthContextType {
+  user: any;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+const AuthProvider = ({ children }: { children: ReactNode }) => {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
-  const [showSignUp, setShowSignUp] = React.useState(false);
+  const { isAuthenticated, isLoading, user } = useAppSelector(
+    (state) => state.auth,
+  );
+  const [showSignUp, setShowSignUp] = useState(false);
 
   useEffect(() => {
     dispatch(initializeAuth());
@@ -37,7 +60,11 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <AuthContext.Provider value={{ user }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export default AuthProvider;
