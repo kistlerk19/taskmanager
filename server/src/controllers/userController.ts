@@ -11,15 +11,14 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
       select: {
         userId: true,
         username: true,
+        email: true,
         profilePictureUrl: true,
         teamId: true,
       },
     });
     res.json(users);
   } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `Error retrieving users: ${error.message}` });
+    res.status(500).json({ message: `Error retrieving users: ${error.message}` });
   }
 };
 
@@ -33,6 +32,7 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
       select: {
         userId: true,
         username: true,
+        email: true,
         profilePictureUrl: true,
         teamId: true,
       },
@@ -45,9 +45,7 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
 
     res.json(user);
   } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `Error retrieving user: ${error.message}` });
+    res.status(500).json({ message: `Error retrieving user: ${error.message}` });
   }
 };
 
@@ -59,9 +57,9 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
-    
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key") as any;
+
     const user = await prisma.user.findUnique({
       where: {
         userId: decoded.userId,
@@ -69,6 +67,7 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
       select: {
         userId: true,
         username: true,
+        email: true,
         profilePictureUrl: true,
         teamId: true,
       },
@@ -87,18 +86,18 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
-    const { username, password } = req.body;
+    const { username, email, password } = req.body;
 
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
-        username: username
-      }
+        OR: [{ username }, { email }],
+      },
     });
 
     if (existingUser) {
-      return res.status(400).json({ 
-        message: "Username already taken" 
+      return res.status(400).json({
+        message: "Username or email already taken",
       });
     }
 
@@ -110,6 +109,7 @@ export const registerUser = async (req: Request, res: Response) => {
     const newUser = await prisma.user.create({
       data: {
         username,
+        email,
         password: hashedPassword,
         profilePictureUrl: "i1.jpg",
         teamId: 1,
@@ -117,6 +117,7 @@ export const registerUser = async (req: Request, res: Response) => {
       select: {
         userId: true,
         username: true,
+        email: true,
         profilePictureUrl: true,
         teamId: true,
       },
@@ -124,9 +125,9 @@ export const registerUser = async (req: Request, res: Response) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: newUser.userId, username: newUser.username },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '7d' }
+      { userId: newUser.userId, username: newUser.username, email: newUser.email },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "7d" }
     );
 
     res.status(201).json({
@@ -135,9 +136,7 @@ export const registerUser = async (req: Request, res: Response) => {
       token,
     });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `Error registering user: ${error.message}` });
+    res.status(500).json({ message: `Error registering user: ${error.message}` });
   }
 };
 
@@ -162,15 +161,16 @@ export const loginUser = async (req: Request, res: Response) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user.userId, username: user.username },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '7d' }
+      { userId: user.userId, username: user.username, email: user.email },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "7d" }
     );
 
     // Return user data without password
     const userResponse = {
       userId: user.userId,
       username: user.username,
+      email: user.email,
       profilePictureUrl: user.profilePictureUrl,
       teamId: user.teamId,
     };
@@ -181,14 +181,10 @@ export const loginUser = async (req: Request, res: Response) => {
       token,
     });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `Error logging in: ${error.message}` });
+    res.status(500).json({ message: `Error logging in: ${error.message}` });
   }
 };
 
 export const logoutUser = async (req: Request, res: Response) => {
-  // In a JWT-based system, logout is typically handled client-side
-  // by removing the token from storage
   res.json({ message: "Logged out successfully" });
 };
