@@ -22,7 +22,6 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
         cognitoId: cognitoId,
       },
     });
-
     res.json(user);
   } catch (error: any) {
     res
@@ -33,24 +32,52 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
 
 export const postUser = async (req: Request, res: Response) => {
   try {
+    console.log("Received user data:", req.body); // Add logging
+    
     const {
       username,
+      email, // Make sure email is included
       cognitoId,
       profilePictureUrl = "i1.jpg",
       teamId = 1,
     } = req.body;
+
+    // Validate required fields
+    if (!username || !email || !cognitoId) {
+      return res.status(400).json({ 
+        message: "Missing required fields: username, email, and cognitoId are required" 
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { cognitoId }
+    });
+
+    if (existingUser) {
+      return res.status(409).json({ 
+        message: "User already exists",
+        user: existingUser 
+      });
+    }
+
     const newUser = await prisma.user.create({
       data: {
         username,
+        email,
         cognitoId,
         profilePictureUrl,
         teamId,
       },
     });
-    res.json({ message: "User Created Successfully", newUser });
+
+    console.log("User created successfully:", newUser); // Add logging
+    res.status(201).json({ message: "User Created Successfully", newUser });
+    
   } catch (error: any) {
+    console.error("Error creating user:", error); // Add logging
     res
       .status(500)
-      .json({ message: `Error retrieving users: ${error.message}` });
+      .json({ message: `Error creating user: ${error.message}` });
   }
 };
