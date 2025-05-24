@@ -210,7 +210,7 @@ const SignIn: React.FC<SignInProps> = ({ onToggle }) => {
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Don&apos;t forget your password{' '}
               <button
                 type="button"
                 onClick={onToggle}
