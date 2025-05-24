@@ -1,11 +1,23 @@
 import { Router } from "express";
-
-import { getUser, getUsers, postUser } from "../controllers/userController";
+import { 
+  getUsers, 
+  getUser, 
+  getCurrentUser,
+  registerUser, 
+  loginUser, 
+  logoutUser 
+} from "../controllers/userController";
 
 const router = Router();
 
+// Auth routes
+router.post("/auth/register", registerUser);
+router.post("/auth/login", loginUser);
+router.post("/auth/logout", logoutUser);
+router.get("/auth/me", getCurrentUser);
+
+// User routes
 router.get("/", getUsers);
-router.post("/", postUser);
-router.get("/:cognitoId", getUser);
+router.get("/:userId", getUser);
 
 export default router;
