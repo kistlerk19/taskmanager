@@ -101,18 +101,27 @@ export const registerUser = async (req: Request, res: Response) => {
       });
     }
 
+    // Fetch the default team
+    const defaultTeam = await prisma.team.findFirst({
+      where: { teamName: "Default Team" },
+    });
+
+    if (!defaultTeam) {
+      return res.status(500).json({ message: "Default team not found. Please seed it first." });
+    }
+
     // Hash password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create user
+    // Create user and assign to the default team
     const newUser = await prisma.user.create({
       data: {
         username,
         email,
         password: hashedPassword,
         profilePictureUrl: "i1.jpg",
-        teamId: 1,
+        teamId: defaultTeam.id,
       },
       select: {
         userId: true,
@@ -139,6 +148,62 @@ export const registerUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: `Error registering user: ${error.message}` });
   }
 };
+
+// export const registerUser = async (req: Request, res: Response) => {
+//   try {
+//     const { username, email, password } = req.body;
+
+//     // Check if user already exists
+//     const existingUser = await prisma.user.findFirst({
+//       where: {
+//         OR: [{ username }, { email }],
+//       },
+//     });
+
+//     if (existingUser) {
+//       return res.status(400).json({
+//         message: "Username or email already taken",
+//       });
+//     }
+
+//     // Hash password
+//     const saltRounds = 10;
+//     const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+//     // Create user
+//     const newUser = await prisma.user.create({
+//       data: {
+//         username,
+//         email,
+//         password: hashedPassword,
+//         profilePictureUrl: "i1.jpg",
+//         teamId: 1,
+//       },
+//       select: {
+//         userId: true,
+//         username: true,
+//         email: true,
+//         profilePictureUrl: true,
+//         teamId: true,
+//       },
+//     });
+
+//     // Generate JWT token
+//     const token = jwt.sign(
+//       { userId: newUser.userId, username: newUser.username, email: newUser.email },
+//       process.env.JWT_SECRET || "your-secret-key",
+//       { expiresIn: "7d" }
+//     );
+
+//     res.status(201).json({
+//       message: "User registered successfully",
+//       user: newUser,
+//       token,
+//     });
+//   } catch (error: any) {
+//     res.status(500).json({ message: `Error registering user: ${error.message}` });
+//   }
+// };
 
 export const loginUser = async (req: Request, res: Response) => {
   try {
