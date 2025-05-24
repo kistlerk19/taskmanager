@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
@@ -18,7 +17,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     } else {
       document.documentElement.classList.remove("dark");
     }
-  });
+  }, [isDarkMode]);
 
   return (
     <div className="flex min-h-screen w-full bg-gray-50 text-gray-900">
