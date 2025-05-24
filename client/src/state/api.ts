@@ -106,7 +106,7 @@ export const api = createApi({
     // Authentication endpoints
     login: build.mutation<AuthResponse, LoginRequest>({
       query: (credentials) => ({
-        url: "auth/login",
+        url: "login",
         method: "POST",
         body: credentials,
       }),
@@ -114,7 +114,7 @@ export const api = createApi({
     }),
     register: build.mutation<AuthResponse, RegisterRequest>({
       query: (userData) => ({
-        url: "auth/register",
+        url: "register",
         method: "POST",
         body: userData,
       }),
@@ -122,13 +122,13 @@ export const api = createApi({
     }),
     logout: build.mutation<void, void>({
       query: () => ({
-        url: "auth/logout",
+        url: "logout",
         method: "POST",
       }),
       invalidatesTags: ["Auth"],
     }),
     getCurrentUser: build.query<User, void>({
-      query: () => "auth/me",
+      query: () => "me",
       providesTags: ["Auth"],
     }),
     getProjects: build.query<Project[], void>({
